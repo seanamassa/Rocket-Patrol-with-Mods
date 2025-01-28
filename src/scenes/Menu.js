@@ -5,15 +5,17 @@ class Menu extends Phaser.Scene{
 
     preload(){
         // load images/ tile sprires
-        this.load.image('rocket', './assets/rocket.png')
-        this.load.image('spaceship', './assets/spaceship.png')
+        this.load.image('rocket', './assets/rocket3.png')
+        this.load.image('spaceship', './assets/spaceship2-1.png')
         this.load.image('starfield', './assets/starfield.png')
-        this.load.image('ufo', './assets/ufo.png')
+        this.load.image('ufo', './assets/ufo3.png')
+        this.load.image('menu', './assets/mainMenu.png')
         
         // load audio
         this.load.audio('sfx-select', './assets/sfx-select.wav')
         this.load.audio('sfx-explosion', './assets/sfx-explosion.wav')
         this.load.audio('sfx-shot', './assets/sfx-shot.wav')
+        this.load.audio('music', 'assets/music.wav');
                 
         // load spritesheet
         this.load.spritesheet('explosion', './assets/explosion.png', {
@@ -27,6 +29,13 @@ class Menu extends Phaser.Scene{
     }
 
     create(){
+    // Add the menu image and position it at the top-left corner
+    let menuImage = this.add.image(0, 0, 'menu').setOrigin(0, 0);
+
+    // FORCE IT TO FILL THE SCREEN
+    menuImage.setDisplaySize(game.config.width, game.config.height);
+
+
         //animation configuration
         this.anims.create({
             key: 'explode',
@@ -39,9 +48,9 @@ class Menu extends Phaser.Scene{
         })
 
         let menuConfig = {
-            fontFamily: 'Courier',
+            fontFamily: 'Impact',
             fontSize: '28px',
-            backgroundColor: "#F3B141",
+            backgroundColor: "#ff66ff",
             color: '#843605',
             align: 'right',
             padding: {
@@ -52,8 +61,7 @@ class Menu extends Phaser.Scene{
         }
 
         // display menu text
-        this.add.text(game.config.width/2, game.config.height/2 - borderUISize - borderPadding, 'ROCKET PATROL',
-        menuConfig) .setOrigin(0.5)
+        //this.add.text(game.config.width/2, game.config.height/2 - borderUISize - borderPadding, 'ROCKET PATROL',menuConfig) .setOrigin(0.5)
         this.add.text(game.config.width/2, game.config.height/2, 'Use ←→ arrows to move & (F) to fire', menuConfig)
         .setOrigin(0.5)
         menuConfig.backgroundColor = '#00FF00'

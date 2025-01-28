@@ -8,26 +8,40 @@ class Play extends Phaser.Scene{
     
 
     create(){
+        // Add this at the beginning of create() to load and play the music
+        this.bgm = this.sound.add('music', { loop: true, volume: 0.5 }); // Loop the music
+        this.bgm.play();    
         //place tile sprite
         this.starfield = this.add.tileSprite(0 ,0 ,640 , 480, 'starfield').setOrigin(0,0)
 
         // green UI backround
-        this.add.rectangle(0, borderUISize + borderPadding, game.config.width, borderUISize * 2, 0x00FF00).setOrigin(0,0)
+        this.add.rectangle(0, borderUISize + borderPadding, game.config.width, borderUISize * 2, 0xff66ff).setOrigin(0,0)
         //white borders
-        this.add.rectangle(0, 0, game.config.width, borderUISize, 0xFFFFFF).setOrigin(0,0)
-        this.add.rectangle(0, game.config.height - borderUISize, game.config.width, borderUISize, 0xFFFFFF).setOrigin(0,0)
-        this.add.rectangle(0,0, borderUISize, game.config.height, 0xFFFFFF).setOrigin(0,0)
-        this.add.rectangle(game.config.width - borderUISize, 0, borderUISize, game.config.height, 0xFFFFFF).setOrigin(0,0)
+        this.add.rectangle(0, 0, game.config.width, borderUISize, 0x00FF00).setOrigin(0,0)
+        this.add.rectangle(0, game.config.height - borderUISize, game.config.width, borderUISize, 0x00FF00).setOrigin(0,0)
+        this.add.rectangle(0,0, borderUISize, game.config.height, 0x00FF00).setOrigin(0,0)
+        this.add.rectangle(game.config.width - borderUISize, 0, borderUISize, game.config.height, 0x00FF00).setOrigin(0,0)
         
         // add rocket (p1)
-        this.p1Rocket = new Rocket(this, game.config.width/2, game.config.height - borderUISize - borderPadding, 'rocket').setOrigin(0.5, 0)
+        this.p1Rocket = new Rocket(this, game.config.width/2, game.config.height - borderUISize - borderPadding, 'rocket').setOrigin(0.5, 0.5)
 
         // add spaceships (x3)
         this.ship01 = new Spaceship(this, game.config.width + borderUISize*6, borderUISize*4, 'spaceship', 0, 30).setOrigin(0,0)
         this.ship02 = new Spaceship(this, game.config.width + borderUISize*3, borderUISize*5 + borderPadding*2,'spaceship', 0, 20).setOrigin(0,0)
         this.ship03 = new Spaceship(this, game.config.width, borderUISize*6 + borderPadding*4, 'spaceship',0 ,10).setOrigin(0,0)
-        this.UFO01 = new UFO(this, game.config.width, borderUISize*7 + borderPadding*4, 'ufo',0 ,50).setOrigin(0,0)
+        this.UFO01 = new UFO(this, game.config.width, borderUISize*7 + borderPadding*4, 'ufo',0 ,50).setOrigin(0.5,0.5)
         this.UFO01.moveSpeed = game.settings.ufoSpeed 
+
+        // Enable physics debug for the rocket and UFO
+        this.physics.add.existing(this.p1Rocket);
+        this.physics.add.existing(this.UFO01);
+        this.physics.add.existing(this.ship01);
+        this.physics.add.existing(this.ship02)
+        this.physics.add.existing(this.ship03)
+        // Adjust hitboxes
+        this.p1Rocket.body.setSize(40, 40).setOffset(8, 8);  // Adjust rocket hitbox
+        this.UFO01.body.setSize(15, 15).setOffset(2, 2); // Adjust UFO hitbox
+
         //define keys
         keyFIRE = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.F)
         keyRESET = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.R)
@@ -38,9 +52,9 @@ class Play extends Phaser.Scene{
         this.p1Score = 0
         //display score
         let scoreConfig = {
-            fontFamily: 'Courier',
+            fontFamily: 'Impact',
             fontSize: '28px',
-            backgroundColor: '#F3B141',
+            backgroundColor: '#00FF00',
             color: "#843605",
             align: 'right',
             padding: {
@@ -50,7 +64,33 @@ class Play extends Phaser.Scene{
             fixedWidth: 100
         }
         this.scoreLeft = this.add.text(borderUISize + borderPadding, borderUISize + borderPadding*2, this.p1Score, scoreConfig)
-        
+       
+        // Initialize high score (use localStorage to persist across sessions)
+        this.highScore = localStorage.getItem('highScore') || 0;
+
+        // Display high score
+        let highScoreConfig = {
+            fontFamily: 'Impact',
+            fontSize: '28px',
+            backgroundColor: '#00FF00',
+            color: "#843605",
+            align: 'center',
+            padding: {
+                top: 5,
+                bottom: 5,
+            },
+            fixedWidth: 200,
+        };
+
+
+        //display high score on top center of screen
+        this.highScoreText = this.add.text(
+            game.config.width / 2,
+            borderUISize + borderPadding * 2,
+            `High Score: ${this.highScore}`,
+            highScoreConfig
+        ).setOrigin(0.5, 0);
+
         // GAME OVER flag
         this.gameOver = false
 
@@ -62,6 +102,9 @@ class Play extends Phaser.Scene{
         this.clock = this.time.delayedCall (game.settings.gameTimer, () => {
             this.add.text(game.config.width/2, game.config.height/2, 'GAME OVER', scoreConfig).setOrigin(0.5)
             this.add.text(game.config.width/2, game.config.height/2 + 64, 'Press (R) to Restart or ← for Menu', scoreConfig).setOrigin(0.5)
+            // Stop the background music
+            if (this.backgroundMusic) {
+            this.backgroundMusic.stop();}
             this.gameOver = true
         }, null,this)
 
@@ -72,14 +115,17 @@ class Play extends Phaser.Scene{
             borderUISize + borderPadding,                   // Top margin
             `Time: ${(this.remainingTime / 1000).toFixed(1)}`, // Initial time in seconds
             {
-                fontFamily: 'Courier',
+                fontFamily: 'Impact',
                 fontSize: '28px',
-                color: '#FFFFFF',
-                backgroundColor: '#F3B141',
-                align: 'center',
-                
+                color: '#843605',
+                backgroundColor: '#00FF00',
+                align: 'right',
+                padding: {
+                    top: 15, 
+                    bottom: 10,
+                },
             }
-        ).setOrigin(1, 0); // Align text to the top-right corner
+        ).setOrigin(1, 0,5); // Align text to the top-right corner
 
 
     }
@@ -87,11 +133,30 @@ class Play extends Phaser.Scene{
     update(){
         // check key input for restart
         if(this.gameOver && Phaser.Input.Keyboard.JustDown(keyRESET)){
+            this.bgm.stop();  // Stop background music
             this.scene.restart()
         }
         if (this.gameOver && Phaser.Input.Keyboard.JustDown(keyLEFT)) {
+            this.bgm.stop();  // Stop background music
             this.scene.start("menuScene")
           }
+
+        // Check for game over
+        if (this.gameOver) {
+            // Update high score if necessary
+            if (this.p1Score > this.highScore) {
+                this.highScore = this.p1Score;
+
+                // Save to localStorage for persistence
+                localStorage.setItem('highScore', this.highScore);
+
+                // Update high score text on screen
+                this.highScoreText.text = `High Score: ${this.highScore}`;
+            }
+    }
+        // Gradually increase UFO speed over time
+        this.UFO01.moveSpeed += 0.001 // Increment UFO speed by 0.01 each frame
+          
         this.starfield.tilePositionX -= 4
 
         if(!this.gameOver){
@@ -137,8 +202,7 @@ class Play extends Phaser.Scene{
         
         let remainingTime = Math.max(0, this.clock.getRemaining()) / 1000 // Convert ms to seconds, avoid negatives
         this.timerText.text = `Time: ${remainingTime.toFixed(1)}` // Show to 1 decimal point
-        console.log("Remaining Time: " + remainingTime)
-        console.log("Current Timer Delay: " + this.clock.delay);
+
 
     }
 
@@ -158,13 +222,15 @@ class Play extends Phaser.Scene{
         ship.alpha = 0
         //create explosion sprite at ship's position
         let boom = this.add.sprite(ship.x, ship.y, 'explosion').setOrigin(0,0)
-        boom.anims.play('explode')              // play explosion animation
+              // play explosion animation
         boom.on('animationcomplete', () =>{     // callback after anim completes
+            boom.destroy()
             ship.reset()                        // reset ship position
             ship.alpha = 1                      // make ship visible
-            boom.destroy()
+
             this.sound.play('sfx-explosion')                      // remove explosion sprite
         })
+        boom.anims.play('explode')
         this.p1Score += ship.points
         this.scoreLeft.text = this.p1Score
 
@@ -175,28 +241,40 @@ class Play extends Phaser.Scene{
  
     }
     checkCollisionUFO(rocket, UFO) {
-        if(rocket.x < UFO.x + UFO.width &&
-            rocket.x + rocket.width > UFO.x &&
-            rocket.y < UFO.y + UFO.height &&
-            rocket.height + rocket.y > UFO.y) {
-            return true;
-        } else {
-            return false;
-        }
+
+      
+    if(rocket.x < UFO.x + UFO.width &&
+        rocket.x + rocket.width > UFO.x &&
+        rocket.y < UFO.y + UFO.height &&
+        rocket.height + rocket.y > UFO.y) {
+        return true;
+    } 
+    else {
+        return false;
+    }
+        
     }
     
         
     UFOExplode(UFO){
+        // Prevent multiple explosions for the same UFO
+        if (UFO.isHit) {
+            return; // Skip if already hit
+        }
+        UFO.isHit = true; // Mark as hit
+
          // temp hide ship
         UFO.alpha = 0
         //create explosion sprite at ship's position
-        let boom = this.add.sprite(UFO.x, UFO.y, 'explosion').setOrigin(0,0);
+        let boom = this.add.sprite(UFO.x, UFO.y - 2, 'explosion').setOrigin(0.5,0.5);
         boom.anims.play('explode')              // play explosion animation
         boom.on('animationcomplete', () =>{     // callback after anim completes
+            boom.destroy()
             UFO.reset()                        // reset ship position
             UFO.alpha = 1                      // make ship visible
-            boom.destroy()
-            this.sound.play('sfx-explosion')                      // remove explosion sprite
+
+            UFO.isHit = false
+            this.sound.play('sfx-explosion')    // remove explosion sprite
         })
         this.p1Score += UFO.points
         this.scoreLeft.text = this.p1Score
