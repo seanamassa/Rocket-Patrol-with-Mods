@@ -20,7 +20,7 @@ let config = {
     physics: {
         default: 'arcade',
         arcade: {
-            debug: true, // Enables debugging
+            //debug: true, // Enables debugging
         },
     },    
     scene: [Menu, Play]

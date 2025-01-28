@@ -38,6 +38,7 @@ class Play extends Phaser.Scene{
         this.physics.add.existing(this.ship01);
         this.physics.add.existing(this.ship02)
         this.physics.add.existing(this.ship03)
+        
         // Adjust hitboxes
         this.p1Rocket.body.setSize(40, 40).setOffset(8, 8);  // Adjust rocket hitbox
         this.UFO01.body.setSize(15, 15).setOffset(2, 2); // Adjust UFO hitbox
@@ -224,10 +225,9 @@ class Play extends Phaser.Scene{
         let boom = this.add.sprite(ship.x, ship.y, 'explosion').setOrigin(0,0)
               // play explosion animation
         boom.on('animationcomplete', () =>{     // callback after anim completes
-            boom.destroy()
             ship.reset()                        // reset ship position
             ship.alpha = 1                      // make ship visible
-
+            boom.destroy()
             this.sound.play('sfx-explosion')                      // remove explosion sprite
         })
         boom.anims.play('explode')
@@ -269,10 +269,9 @@ class Play extends Phaser.Scene{
         let boom = this.add.sprite(UFO.x, UFO.y - 2, 'explosion').setOrigin(0.5,0.5);
         boom.anims.play('explode')              // play explosion animation
         boom.on('animationcomplete', () =>{     // callback after anim completes
-            boom.destroy()
             UFO.reset()                        // reset ship position
             UFO.alpha = 1                      // make ship visible
-
+            boom.destroy()
             UFO.isHit = false
             this.sound.play('sfx-explosion')    // remove explosion sprite
         })
